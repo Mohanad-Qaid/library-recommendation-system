@@ -1,5 +1,62 @@
 import { Book, ReadingList, Review, Recommendation } from '@/types';
 import { mockBooks, mockReadingLists } from './mockData';
+import { fetchAuthSession } from 'aws-amplify/auth';
+
+// started editing by mohanad
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+async function getAuthHeaders() {
+  try {
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
+    return {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+  } catch {
+    return {
+      'Content-Type': 'application/json',
+    };
+  }
+}
+
+// Update getBooks function:
+export async function getBooks(): Promise<Book[]> {
+  const response = await fetch(`${API_BASE_URL}/books`);
+  if (!response.ok) throw new Error('Failed to fetch books');
+  return response.json();
+}
+
+// Update createReadingList function:
+export async function createReadingList(
+  list: Omit<ReadingList, 'id' | 'createdAt' | 'updatedAt'>
+): Promise<ReadingList> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}/reading-lists`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(list),
+  });
+  if (!response.ok) throw new Error('Failed to create reading list');
+  return response.json();
+}
+
+export async function getRecommendations(query: string): Promise<Recommendation[]> {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}/recommendations`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query }),
+  });
+  if (!response.ok) throw new Error('Failed to get recommendations');
+  const data = await response.json();
+  return data.recommendations;
+}
+//end mohanad editing 
+
+
+
 
 /**
  * ============================================================================
@@ -88,12 +145,6 @@ import { mockBooks, mockReadingLists } from './mockData';
  *
  * Expected response: Array of Book objects from DynamoDB
  */
-export async function getBooks(): Promise<Book[]> {
-  // TODO: Remove this mock implementation after deploying Lambda
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(mockBooks), 500);
-  });
-}
 
 /**
  * Get a single book by ID
@@ -215,30 +266,6 @@ export async function deleteBook(): Promise<void> {
  *
  * Documentation: https://docs.aws.amazon.com/bedrock/latest/userguide/
  */
-export async function getRecommendations(): Promise<Recommendation[]> {
-  // TODO: Remove this mock implementation after deploying Bedrock Lambda
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const mockRecommendations: Recommendation[] = [
-        {
-          id: '1',
-          bookId: '1',
-          reason:
-            'Based on your interest in philosophical fiction, this book explores themes of choice and regret.',
-          confidence: 0.92,
-        },
-        {
-          id: '2',
-          bookId: '2',
-          reason:
-            'If you enjoy science-based thrillers, this space adventure combines humor with hard science.',
-          confidence: 0.88,
-        },
-      ];
-      resolve(mockRecommendations);
-    }, 1000);
-  });
-}
 
 /**
  * Get user's reading lists
@@ -292,22 +319,6 @@ export async function getReadingLists(): Promise<ReadingList[]> {
  *
  * Expected response: Complete ReadingList object with generated id and timestamps
  */
-export async function createReadingList(
-  list: Omit<ReadingList, 'id' | 'createdAt' | 'updatedAt'>
-): Promise<ReadingList> {
-  // TODO: Remove this mock implementation after deploying Lambda
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newList: ReadingList = {
-        ...list,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      resolve(newList);
-    }, 500);
-  });
-}
 
 /**
  * Update a reading list
