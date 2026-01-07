@@ -3,15 +3,18 @@ import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { Input } from '@/components/common/Input';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
-import { getReadingLists, createReadingList } from '@/services/api';
+import { getReadingLists, createReadingList, deleteReadingList } from '@/services/api';
 import { ReadingList } from '@/types';
 import { formatDate } from '@/utils/formatters';
 import { handleApiError, showSuccess } from '@/utils/errorHandling';
+import { useAuth } from '@/hooks/useAuth';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 /**
  * ReadingLists page component
  */
 export function ReadingLists() {
+  const { user } = useAuth();
   const [lists, setLists] = useState<ReadingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,8 +46,11 @@ export function ReadingLists() {
 
     try {
       // TODO: Replace with DynamoDB put operation
+      if (!user?.id) {
+        throw new Error('User not loaded. Please re-login.');
+      }
       const newList = await createReadingList({
-        userId: '1', // TODO: Get from auth context
+        userId: user.id,
         name: newListName,
         description: newListDescription,
         bookIds: [],
@@ -54,6 +60,19 @@ export function ReadingLists() {
       setNewListName('');
       setNewListDescription('');
       showSuccess('Reading list created successfully!');
+    } catch (error) {
+      handleApiError(error);
+    }
+  };
+
+  const deleteReadingListtoAPI = async (listId: string) => {
+    if (!window.confirm('Delete this list?')) return;
+
+    try {
+      await deleteReadingList(listId);
+
+      setLists(lists.filter((l) => l.id !== listId));
+      showSuccess('Deleted successfully');
     } catch (error) {
       handleApiError(error);
     }
@@ -115,6 +134,9 @@ export function ReadingLists() {
                 <div className="flex items-center justify-between text-sm text-slate-500">
                   <span>{list.bookIds.length} books</span>
                   <span>Created {formatDate(list.createdAt)}</span>
+                  <button className="text-red-600" onClick={() => deleteReadingListtoAPI(list.id)}>
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}

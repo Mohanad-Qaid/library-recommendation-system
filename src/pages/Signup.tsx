@@ -11,11 +11,13 @@ import { handleApiError } from '@/utils/errorHandling';
  */
 export function Signup() {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup, confirmSignup } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [step, setStep] = useState<'FORM' | 'CONFIRM'>('FORM');
+  const [code, setCode] = useState('');
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
@@ -62,7 +64,22 @@ export function Signup() {
     setIsLoading(true);
     try {
       await signup(email, password, name);
+      setStep('CONFIRM');
       alert('Account created! Check your email to confirm your account, then log in.');
+      // navigate('/login');
+    } catch (error) {
+      handleApiError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      await confirmSignup(email, code);
+      alert('Verified! Please log in.');
       navigate('/login');
     } catch (error) {
       handleApiError(error);
@@ -70,6 +87,28 @@ export function Signup() {
       setIsLoading(false);
     }
   };
+
+  if (step === 'CONFIRM') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 animated-bg">
+        <div className="glass-effect rounded-3xl p-8 max-w-md w-full">
+          <h2 className="text-2xl font-bold mb-4">Enter Verification Code</h2>
+          <form onSubmit={handleConfirm}>
+            <Input
+              label="6-Digit Code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="123456"
+              required
+            />
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Verifying...' : 'Verify Account'}
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 animated-bg">
