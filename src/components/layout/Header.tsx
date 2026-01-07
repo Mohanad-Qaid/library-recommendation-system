@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Navigation } from './Navigation';
+import { useAuth } from '@/hooks/useAuth'; //we import this to check if user logged in
 
 /**
  * Modern Header component with glass morphism effect
@@ -9,6 +10,14 @@ import { Navigation } from './Navigation';
  */
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    //  confirm logout because there is no logout page
+    if (window.confirm('Are you sure you want to log out?')) {
+      await logout();
+    }
+  };
 
   return (
     <header className="glass-effect sticky top-0 z-50 border-b border-white/20 shadow-lg">
@@ -43,18 +52,29 @@ export function Header() {
 
           {/* User Actions */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link
-              to="/login"
-              className="text-slate-700 hover:text-violet-600 transition-colors font-semibold px-4 py-2 rounded-lg hover:bg-violet-50"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40 font-semibold transform hover:-translate-y-0.5"
-            >
-              Sign Up
-            </Link>
+            {!isAuthenticated ? (
+              <>
+                <Link
+                  to="/login"
+                  className="text-slate-700 hover:text-violet-600 transition-colors font-semibold px-4 py-2 rounded-lg hover:bg-violet-50"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl hover:from-violet-700 hover:to-indigo-700 transition-all shadow-lg shadow-violet-500/30 hover:shadow-xl hover:shadow-violet-500/40 font-semibold transform hover:-translate-y-0.5"
+                >
+                  Sign Up
+                </Link>
+              </>
+            ) : (
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-700 transition-colors font-semibold px-4 py-2 rounded-lg hover:bg-red-50 border border-red-100"
+              >
+                Logout
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}

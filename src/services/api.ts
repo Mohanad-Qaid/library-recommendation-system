@@ -137,11 +137,15 @@ export async function updateReadingList(
     body: JSON.stringify(list),
   });
 
-  if (!response.ok) throw new Error('Failed to update reading list');
+  if (!response.ok) {
+    const data = await response.json();
+    alert(`Server says: ${data.message}`);
+    throw new Error('Failed to delete reading list');
+  }
   return response.json();
 }
 
-export async function deleteReadingList(id: string): Promise<void> {
+export async function deleteReadingList(id: string): Promise<boolean> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}/reading-lists/${id}`, {
@@ -150,6 +154,8 @@ export async function deleteReadingList(id: string): Promise<void> {
   });
 
   if (!response.ok) throw new Error('Failed to delete reading list');
+
+  return true;
 }
 
 /**
@@ -162,9 +168,7 @@ export async function getReviews(bookId: string): Promise<Review[]> {
   return response.json();
 }
 
-export async function createReview(
-  review: Omit<Review, 'id' | 'createdAt'>
-): Promise<Review> {
+export async function createReview(review: Omit<Review, 'id' | 'createdAt'>): Promise<Review> {
   const headers = await getAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}/books/${review.bookId}/reviews`, {

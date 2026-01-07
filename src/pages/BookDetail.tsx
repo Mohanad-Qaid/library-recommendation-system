@@ -6,6 +6,7 @@ import { getBook } from '@/services/api';
 import { Book } from '@/types';
 import { formatRating } from '@/utils/formatters';
 import { handleApiError } from '@/utils/errorHandling';
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 /**
  * BookDetail page component
@@ -15,6 +16,7 @@ export function BookDetail() {
   const navigate = useNavigate();
   const [book, setBook] = useState<Book | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (id) {

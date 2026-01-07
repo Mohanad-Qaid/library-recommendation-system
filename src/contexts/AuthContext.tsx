@@ -1,7 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useState, useEffect } from 'react';
 import { User } from '@/types';
-import { signIn, signUp, signOut, getCurrentUser, fetchAuthSession } from "aws-amplify/auth";
+import {
+  signIn,
+  signUp,
+  signOut,
+  getCurrentUser,
+  fetchAuthSession,
+  confirmSignUp,
+} from 'aws-amplify/auth';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * Authentication context type definition
@@ -13,6 +21,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
+  confirmSignup: (email: string, code: string) => Promise<void>;
 }
 
 /**
@@ -91,40 +100,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      // 1) Check if we have a real session (tokens)
-      const session = await fetchAuthSession();
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // 1) Check if we have a real session (tokens)
+        const session = await fetchAuthSession();
 
-      // If no tokens, user is NOT logged in
-      if (!session.tokens) {
+        // If no tokens, user is NOT logged in
+        if (!session.tokens) {
+          setUser(null);
+          return;
+        }
+
+        // 2) If tokens exist, now it's safe to get the user
+        const cognitoUser = await getCurrentUser();
+
+        const newUser: User = {
+          id: cognitoUser.userId,
+          email: cognitoUser.signInDetails?.loginId || cognitoUser.username || '',
+          name: cognitoUser.username || 'User',
+          role: 'user',
+          createdAt: new Date().toISOString(),
+        };
+
+        setUser(newUser);
+      } catch {
         setUser(null);
-        return;
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      // 2) If tokens exist, now it's safe to get the user
-      const cognitoUser = await getCurrentUser();
+    checkAuth();
+  }, []);
 
-      const newUser: User = {
-        id: cognitoUser.userId,
-        email: cognitoUser.signInDetails?.loginId || cognitoUser.username || "",
-        name: cognitoUser.username || "User",
-        role: "user",
-        createdAt: new Date().toISOString(),
-      };
-
-      setUser(newUser);
-    } catch {
-      setUser(null);
+  const confirmSignup = async (email: string, code: string) => {
+    setIsLoading(true);
+    try {
+      await confirmSignUp({ username: email, confirmationCode: code });
+    } catch (error) {
+      console.error(error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
-
-  checkAuth();
-}, []);
-
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
@@ -186,6 +206,7 @@ useEffect(() => {
     login,
     logout,
     signup,
+    confirmSignup,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
