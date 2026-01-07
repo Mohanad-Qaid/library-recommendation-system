@@ -1,26 +1,23 @@
-import { Book, ReadingList, Review, Recommendation } from '@/types';
+import { Book, ReadingList, Review, BookRecommendation } from '@/types';
 import { fetchAuthSession } from 'aws-amplify/auth';
 
 // started editing by mohanad
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
+async function getAuthHeaders() {
   try {
     const session = await fetchAuthSession();
     const token = session.tokens?.idToken?.toString();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
   } catch {
-    // ignore
+    return {
+      'Content-Type': 'application/json'
+    };
   }
-
-  return headers;
 }
 
 // Update getBooks function:
@@ -34,7 +31,12 @@ export async function getBooks(): Promise<Book[]> {
 export async function createReadingList(
   list: Omit<ReadingList, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<ReadingList> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
   const response = await fetch(`${API_BASE_URL}/reading-lists`, {
     method: 'POST',
     headers,
@@ -44,8 +46,13 @@ export async function createReadingList(
   return response.json();
 }
 
-export async function getRecommendations(query: string): Promise<Recommendation[]> {
-  const headers = await getAuthHeaders();
+export async function getRecommendations(query: string): Promise<BookRecommendation[]> {
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
   const response = await fetch(`${API_BASE_URL}/recommendations`, {
     method: 'POST',
     headers,
@@ -58,7 +65,12 @@ export async function getRecommendations(query: string): Promise<Recommendation[
 
 
 export async function createBook(book: Omit<Book, 'id'>): Promise<Book> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
 
   const response = await fetch(`${API_BASE_URL}/books`, {
     method: 'POST',
@@ -76,7 +88,12 @@ export async function createBook(book: Omit<Book, 'id'>): Promise<Book> {
 
 
 export async function updateBook(id: string, book: Partial<Book>): Promise<Book> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
 
   const response = await fetch(`${API_BASE_URL}/books/${id}`, {
     method: 'PUT',
@@ -93,8 +110,12 @@ export async function updateBook(id: string, book: Partial<Book>): Promise<Book>
 
 
 export async function deleteBook(id: string): Promise<void> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
   const response = await fetch(`${API_BASE_URL}/books/${id}`, {
     method: 'DELETE',
     headers,
@@ -119,7 +140,12 @@ export async function getReviews(bookId: string): Promise<Review[]> {
 export async function createReview(
   review: Omit<Review, 'id' | 'createdAt'>
 ): Promise<Review> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
 
   const response = await fetch(
     `${API_BASE_URL}/books/${review.bookId}/reviews`,
@@ -342,7 +368,12 @@ export async function getBook(id: string): Promise<Book | null> {
  * Expected response: Array of ReadingList objects for the authenticated user
  */
 export async function getReadingLists(): Promise<ReadingList[]> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
   const response = await fetch(`${API_BASE_URL}/reading-lists`, { headers });
   if (!response.ok) throw new Error('Failed to fetch reading lists');
   return response.json();
@@ -381,7 +412,12 @@ export async function updateReadingList(
   id: string,
   list: Partial<ReadingList>
 ): Promise<ReadingList> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
   const response = await fetch(`${API_BASE_URL}/reading-lists/${id}`, {
     method: 'PUT',
     headers,
@@ -396,7 +432,12 @@ export async function updateReadingList(
  * TODO: Replace with DELETE /reading-lists/:id API call
  */
 export async function deleteReadingList(id: string): Promise<void> {
-  const headers = await getAuthHeaders();
+  const authHeaders = await getAuthHeaders();
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(authHeaders.Authorization ? { Authorization: authHeaders.Authorization } : {}),
+  };
   const response = await fetch(`${API_BASE_URL}/reading-lists/${id}`, {
     method: 'DELETE',
     headers,
