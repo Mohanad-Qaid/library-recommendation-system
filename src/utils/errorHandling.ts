@@ -1,6 +1,23 @@
 /**
  * Error handling utilities
  */
+import toast from 'react-hot-toast';
+
+export function handleApiError(error: unknown): void {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : 'An unexpected error occurred';
+
+  toast.error(message);
+  console.error('API Error:', error);
+}
+
+export function showSuccess(message: string): void {
+  toast.success(message);
+}
 
 /**
  * Handles API errors and displays user-friendly messages
@@ -12,7 +29,7 @@
  * Usage: import toast from 'react-hot-toast';
  *        toast.error(message);
  */
-export function handleApiError(error: unknown): void {
+/* export function handleApiError(error: unknown): void {
   let message = 'An unexpected error occurred';
 
   if (error instanceof Error) {
@@ -30,8 +47,9 @@ export function handleApiError(error: unknown): void {
  * Shows a success message to the user
  *
  * TODO: Replace with toast.success(message)
- */
+ 
 export function showSuccess(message: string): void {
   alert(`Success: ${message}`);
   console.log('Success:', message);
 }
+*/

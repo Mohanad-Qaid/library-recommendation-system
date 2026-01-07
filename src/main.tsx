@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.tsx';
 import { Amplify } from 'aws-amplify';
+import { Toaster } from 'react-hot-toast';
 Amplify.configure({
   Auth: {
     Cognito: {
@@ -15,5 +16,6 @@ Amplify.configure({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
+    <Toaster position="top-right" />
   </StrictMode>
 );

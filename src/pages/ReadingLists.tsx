@@ -7,11 +7,13 @@ import { getReadingLists, createReadingList } from '@/services/api';
 import { ReadingList } from '@/types';
 import { formatDate } from '@/utils/formatters';
 import { handleApiError, showSuccess } from '@/utils/errorHandling';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * ReadingLists page component
  */
 export function ReadingLists() {
+  const { user } = useAuth();
   const [lists, setLists] = useState<ReadingList[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,8 +45,11 @@ export function ReadingLists() {
 
     try {
       // TODO: Replace with DynamoDB put operation
+      if (!user?.id) {
+        throw new Error('User not loaded. Please re-login.');
+      }
       const newList = await createReadingList({
-        userId: '1', // TODO: Get from auth context
+        userId: user.id,
         name: newListName,
         description: newListDescription,
         bookIds: [],
@@ -57,6 +62,7 @@ export function ReadingLists() {
     } catch (error) {
       handleApiError(error);
     }
+
   };
 
   if (isLoading) {
