@@ -1,0 +1,24 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo Installing dependencies...
+      - npm install
+  build:
+    commands:
+      - echo "Creating .env file from CodeBuild environment variables..."
+      - echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" >> .env
+      - echo "VITE_AWS_REGION=$VITE_AWS_REGION" >> .env
+      - echo "VITE_COGNITO_USER_POOL_ID=$VITE_COGNITO_USER_POOL_ID" >> .env
+      - echo "VITE_COGNITO_CLIENT_ID=$VITE_COGNITO_CLIENT_ID" >> .env
+      - echo Building application...
+      - npm run build
+artifacts:
+  files:
+    - '**/*'
+  base-directory: dist
+cache:
+  paths:
+    - 'node_modules/**/*'
