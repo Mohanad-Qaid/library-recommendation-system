@@ -76,7 +76,7 @@ You should see:
 
 ### Step 4: Open in Browser
 
-Open http://localhost:5173 in your browser.
+Open https://d219tkdpcdcg85.cloudfront.net in your browser.
 
 You should see the Library Recommendation System homepage! 🎉
 
