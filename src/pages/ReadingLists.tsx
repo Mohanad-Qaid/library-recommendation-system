@@ -8,7 +8,7 @@ import { ReadingList } from '@/types';
 import { formatDate } from '@/utils/formatters';
 import { handleApiError, showSuccess } from '@/utils/errorHandling';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchAuthSession } from 'aws-amplify/auth';
+//import { fetchAuthSession } from 'aws-amplify/auth';
 
 /**
  * ReadingLists page component
